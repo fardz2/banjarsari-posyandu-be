@@ -1,6 +1,9 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import "dotenv/config";
+// Only load dotenv in local development
+if (process.env.NODE_ENV !== 'production') {
+  await import('dotenv/config');
+}
 import { cors } from "hono/cors";
 import routes from "./routes/index.js";
 import { globalErrorHandler } from "./middlewares/error.middleware.js";
