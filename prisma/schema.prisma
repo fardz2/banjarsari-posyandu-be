@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. SISTEM AUTENTIKASI & ROLE
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  TENAGA_KESEHATAN
+  KADER_POSYANDU
+  ORANG_TUA
+}
+
+model User {
+  id              String   @id @default(cuid())
+  username        String?  @unique
+  displayUsername String?  @unique
+  role            Role     @default(ORANG_TUA)
+  createdAt       DateTime @default(now())
+
+  // Relasi ke Ortu (sebagai Ayah atau Ibu)
+  ortuAsAyah Ortu[] @relation("UserAyah")
+  ortuAsIbu  Ortu[] @relation("UserIbu")
+
+  posyanduId    Int?
+  posyandu      Posyandu?      @relation(fields: [posyanduId], references: [id])
+  email         String         @unique
+  emailVerified Boolean        @default(false)
+  name          String
+  image         String?        @db.Text
+  updatedAt     DateTime       @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  forums        Forum[]
+  forumComments ForumComment[]
+  ortus         Ortu[]
+
+  @@map("user")
+}
+
+// 2. DATA MASTER POSYANDU
+
+model Posyandu {
+  id        Int     @id @default(autoincrement())
+  nama      String  @unique // Contoh: "CAMELIA 01"
+  rw        String? // Contoh: "01"
+  desa      String  @default("BANJARSARI")
+  kecamatan String  @default("PANGALENGAN")
+  puskesmas String  @default("SUKAMANAH")
+
+  users    User[]
+  anak     Anak[]
+  ibuHamil IbuHamil[]
+}
+
+model IbuHamil {
+  id        Int       @id @default(autoincrement())
+  nama      String
+  nik       String?   @unique
+  tglLahir  DateTime?
+  alamat    String?
+  rw        String? // Domisili RW Ibu Hamil
+  namaSuami String?
+  hp        String?
+
+  posyanduId Int
+  posyandu   Posyandu @relation(fields: [posyanduId], references: [id])
+
+  pemeriksaan PemeriksaanBumil[]
+}
+
+model PemeriksaanBumil {
+  id            Int      @id @default(autoincrement())
+  ibuHamilId    Int
+  ibuHamil      IbuHamil @relation(fields: [ibuHamilId], references: [id])
+  tglPeriksa    DateTime @default(now())
+  usiaKehamilan Int? // Dalam minggu
+  beratBadan    Float?
+  lila          Float? // Lingkar Lengan Atas
+  bbSblmHamil   Float?
+  tbSblmHamil   Float?
+  statusKasus   String? // Contoh: KEK (Kekurangan Energi Kronis) atau Normal
+}
+
+// 3. DATA ORANG TUA
+
+model Ortu {
+  id Int @id @default(autoincrement())
+
+  // Link ke User Account (Bisa salah satu atau keduanya login)
+  userAyahId String?
+  userAyah   User?   @relation("UserAyah", fields: [userAyahId], references: [id])
+  userIbuId  String?
+  userIbu    User?   @relation("UserIbu", fields: [userIbuId], references: [id])
+
+  nik      String? @unique
+  namaAyah String?
+  namaIbu  String?
+  alamat   String?
+  telepon  String?
+  anak     Anak[]
+  user     User?   @relation(fields: [userId], references: [id])
+  userId   String?
+
+  @@index([userAyahId])
+  @@index([userIbuId])
+}
+
+// 4. PROFIL ANAK
+
+model Anak {
+  nik          String   @id
+  nama         String
+  jenisKelamin String
+  tglLahir     DateTime
+  bbLahir      Float?
+  tbLahir      Float?
+  alamat       String?
+  rw           String? // Penanda Domisili RW Anak
+
+  ortuId     Int?
+  ortu       Ortu?    @relation(fields: [ortuId], references: [id])
+  posyanduId Int
+  posyandu   Posyandu @relation(fields: [posyanduId], references: [id])
+
+  pengukuran PengukuranAnak[]
+}
+
+// 5. HASIL PENGUKURAN
+
+model PengukuranAnak {
+  id           Int      @id @default(autoincrement())
+  anakNik      String
+  anak         Anak     @relation(fields: [anakNik], references: [nik])
+  tglUkur      DateTime
+  berat        Float
+  tinggi       Float
+  lila         Float?
+  caraUkur     String?
+  usiaSaatUkur String?
+
+  status_bb_u  String?
+  zs_bb_u      Float?
+  status_tb_u  String?
+  zs_tb_u      Float?
+  status_bb_tb String?
+  zs_bb_tb     Float?
+
+  lingkarKepala Float?
+  status_lk_u   String?
+  zs_lk_u       Float?
+
+  naikBeratBadan String?
+}
+
+// 6. SESSION & AUTHENTICATION
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?  @db.Text
+  userAgent String?  @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @db.Text
+  providerId            String    @db.Text
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String   @db.Text
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// 7. FORUM / Q&A
+
+enum ForumStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+model Forum {
+  id             Int         @id @default(autoincrement())
+  title          String
+  content        String      @db.Text
+  status         ForumStatus @default(OPEN)
+  attachmentUrl  String?     @db.Text // URL to uploaded file
+  attachmentName String? // Original filename
+  createdById    String
+  createdBy      User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  comments ForumComment[]
+
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ForumComment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  forumId   Int
+  forum     Forum    @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([forumId])
+  @@index([userId])
+}

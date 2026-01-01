@@ -1,0 +1,4 @@
+/**
+ * Forum Interface Definitions
+ */
+export {};

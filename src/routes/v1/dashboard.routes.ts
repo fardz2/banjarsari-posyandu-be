@@ -1,0 +1,21 @@
+import { Hono } from 'hono';
+import {
+  getDashboardSummary,
+  getGenderStats,
+  getNutritionalStats,
+  getNutritionalStatsByPosyandu,
+  getVisitTrends,
+} from '../../controllers/dashboard.controller.js';
+import { authMiddleware } from '../../middlewares/auth.middleware.js';
+
+const router = new Hono();
+
+router.use('*', authMiddleware);
+
+router.get('/summary', getDashboardSummary);
+router.get('/gender', getGenderStats);
+router.get('/nutrition', getNutritionalStats);
+router.get('/nutrition-by-posyandu', getNutritionalStatsByPosyandu);
+router.get('/trends', getVisitTrends);
+
+export default router;
