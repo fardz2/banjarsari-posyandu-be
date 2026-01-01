@@ -1,6 +1,6 @@
 // src/utils/permission.helper.ts
 
-import type { Role } from '../generated/prisma/client.js';
+import { Role } from "@prisma/client";
 
 export interface UserContext {
   id: string;

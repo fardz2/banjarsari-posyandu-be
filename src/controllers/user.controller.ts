@@ -13,7 +13,7 @@ import {
 } from '../services/user.service.js';
 import type { CreateUserInput, UpdateUserInput } from '../utils/interfaces/user.interface.js';
 import type { UserContext } from '../utils/permission.helper.js';
-import type { Role } from '../generated/prisma/client.js';
+import { Role } from "@prisma/client";
 
 // POST /api/v1/users
 export const createUser = async (c: Context) => {

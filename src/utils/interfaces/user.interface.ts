@@ -1,6 +1,6 @@
 // src/interfaces/user.interface.ts
 
-import type { Role } from '../../generated/prisma/client.js';
+import { Role } from "@prisma/client";
 
 export interface UserResponse {
   id: string;

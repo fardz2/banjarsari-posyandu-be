@@ -4,7 +4,7 @@
  */
 
 import { prisma } from "../db/prisma.js";
-import type { Role } from "../generated/prisma/index.js";
+import { Role } from "@prisma/client";
 import { canAccessAllPosyandu } from "../utils/permission.helper.js";
 import ExcelJS from "exceljs";
 

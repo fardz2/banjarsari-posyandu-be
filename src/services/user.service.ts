@@ -1,7 +1,7 @@
 // src/services/user.service.ts
 
 import { prisma } from '../db/prisma.js';
-import type { Role } from '../generated/prisma/client.js';
+import { Role } from "@prisma/client";
 import {
   canAccessAllPosyandu,
   canCreateUser,

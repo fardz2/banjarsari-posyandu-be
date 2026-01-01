@@ -1,7 +1,7 @@
 // src/middlewares/role.middleware.ts
 
 import { createMiddleware } from 'hono/factory';
-import type { Role } from '../generated/prisma/client.js';
+import { Role } from "@prisma/client";
 
 /**
  * Middleware untuk require specific roles
