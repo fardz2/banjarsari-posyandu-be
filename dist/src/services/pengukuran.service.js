@@ -1,6 +1,6 @@
 // src/services/pengukuran.service.ts
 import { prisma } from '../db/prisma.js';
-import { canManageMedicalData, canDeleteData, getPosyanduFilter, requirePermission, requirePosyanduAccess, } from '../utils/permission.helper.js';
+import { canCreatePengukuran, canUpdatePengukuran, canDeletePengukuran, getPosyanduFilter, requirePermission, requirePosyanduAccess, } from '../utils/permission.helper.js';
 import { getAnakByNikService } from './anak.service.js';
 import { calculateNutritionalStatus } from '../utils/calculation.helper.js';
 // SERVICE: Get all pengukuran (filtered by posyandu access)
@@ -82,7 +82,7 @@ export const getPengukuranByAnakService = async (anakNik, requestingUser) => {
 // SERVICE: Create pengukuran
 export const createPengukuranService = async (data, requestingUser) => {
     // Check permission
-    requirePermission(canManageMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk menambah data pengukuran');
+    requirePermission(canCreatePengukuran(requestingUser.role), 'Anda tidak memiliki permission untuk menambah data pengukuran');
     // Verify access to anak
     const anak = await getAnakByNikService(data.anakNik, requestingUser);
     // Calculate Nutritional Status automatically
@@ -132,7 +132,7 @@ export const updatePengukuranService = async (id, data, requestingUser) => {
     // Get existing pengukuran
     const existing = await getPengukuranByIdService(id, requestingUser);
     // Check permission
-    requirePermission(canManageMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk update data pengukuran');
+    requirePermission(canUpdatePengukuran(requestingUser.role), 'Anda tidak memiliki permission untuk update data pengukuran');
     // Fetch full anak data for calculation (DOB, Gender)
     // existing.anak from findUnique only has limited fields, so we fetch again or assume existing.anak.nik is available
     // Actually getPengukuranByIdService includes anak with limited select. We need date of birth.
@@ -189,7 +189,7 @@ export const deletePengukuranService = async (id, requestingUser) => {
     // Get existing pengukuran
     await getPengukuranByIdService(id, requestingUser);
     // Check permission: only admin and super admin can delete
-    requirePermission(canDeleteData(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data pengukuran');
+    requirePermission(canDeletePengukuran(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data pengukuran');
     await prisma.pengukuranAnak.delete({
         where: { id },
     });

@@ -1,48 +1,65 @@
 // src/utils/permission.helper.ts
 /**
- * Check apakah role bisa akses semua posyandu
+ * Check apakah role bisa akses semua posyandu (Super Admin & Nakes)
+ * Note: Nakes hanya bisa VIEW, tapi view semua posyandu
  */
 export const canAccessAllPosyandu = (role) => {
-    return role === 'SUPER_ADMIN';
+    return role === 'SUPER_ADMIN' || role === 'TENAGA_KESEHATAN';
 };
 /**
- * Check apakah role bisa manage users (create, update, delete, assign role)
+ * --- USER MANAGEMENT PERMISSIONS ---
  */
-export const canManageUsers = (role) => {
+export const canCreateUser = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'KADER_POSYANDU';
+};
+export const canUpdateUser = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN';
+};
+export const canDeleteUser = (role) => {
     return role === 'SUPER_ADMIN' || role === 'ADMIN';
 };
 /**
- * Check apakah role bisa manage posyandu (create, update, delete)
+ * --- MEDICAL DATA PERMISSIONS (Anak, Ibu Hamil) ---
+ */
+export const canCreateMedicalData = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'KADER_POSYANDU';
+};
+export const canUpdateMedicalData = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'KADER_POSYANDU';
+};
+export const canDeleteMedicalData = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN';
+};
+/**
+ * --- PENGUKURAN PERMISSIONS ---
+ */
+export const canCreatePengukuran = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'KADER_POSYANDU';
+};
+// Kader BISA update pengukuran
+export const canUpdatePengukuran = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'KADER_POSYANDU';
+};
+export const canDeletePengukuran = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN';
+};
+/**
+ * --- POSYANDU MANAGEMENT ---
  */
 export const canManagePosyandu = (role) => {
     return role === 'SUPER_ADMIN';
 };
 /**
- * Check apakah role bisa CRUD data medis (Anak, Pengukuran, IbuHamil, Pemeriksaan)
+ * --- FORUM PERMISSIONS ---
  */
-export const canManageMedicalData = (role) => {
-    return (role === 'SUPER_ADMIN' ||
-        role === 'ADMIN' ||
-        role === 'TENAGA_KESEHATAN' ||
-        role === 'KADER_POSYANDU');
-};
-/**
- * Check apakah role bisa delete data
- */
-export const canDeleteData = (role) => {
-    return role === 'SUPER_ADMIN' || role === 'ADMIN';
-};
-/**
- * Check apakah role bisa view statistics
- */
-export const canViewStatistics = (role) => {
-    return role !== 'ORANG_TUA';
+export const canAnswerForum = (role) => {
+    return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'TENAGA_KESEHATAN';
 };
 /**
  * Check apakah user bisa akses posyandu tertentu
  */
 export const canAccessPosyandu = (user, posyanduId) => {
-    // Super admin dan Tenaga Kesehatan bisa akses semua posyandu
+    // Super admin dan Tenaga Kesehatan bisa akses semua posyandu (Nakes read-only)
     if (user.role === 'SUPER_ADMIN' || user.role === 'TENAGA_KESEHATAN') {
         return true;
     }

@@ -1,6 +1,6 @@
 // src/services/ortu.service.ts
 import { prisma } from '../db/prisma.js';
-import { canManageMedicalData, canDeleteData, getPosyanduFilter, requirePermission, isResourceOwner, } from '../utils/permission.helper.js';
+import { canUpdateMedicalData, canDeleteMedicalData, getPosyanduFilter, requirePermission, isResourceOwner, } from '../utils/permission.helper.js';
 // SERVICE: Get all ortu (filtered by posyandu via anak)
 export const getAllOrtuService = async (requestingUser) => {
     const posyanduFilter = getPosyanduFilter(requestingUser);
@@ -60,7 +60,7 @@ export const getMyOrtuProfileService = async (requestingUser) => {
 // SERVICE: Update ortu
 export const updateOrtuService = async (id, data, requestingUser) => {
     const existing = await getOrtuByIdService(id, requestingUser);
-    requirePermission(canManageMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk update data orang tua');
+    requirePermission(canUpdateMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk update data orang tua');
     const updated = await prisma.ortu.update({
         where: { id },
         data: {
@@ -130,7 +130,7 @@ export const updateMyOrtuProfileService = async (data, requestingUser) => {
 // SERVICE: Delete ortu
 export const deleteOrtuService = async (id, requestingUser) => {
     await getOrtuByIdService(id, requestingUser);
-    requirePermission(canDeleteData(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data orang tua');
+    requirePermission(canDeleteMedicalData(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data orang tua');
     // Check if ortu has anak
     const ortu = await prisma.ortu.findUnique({
         where: { id },

@@ -65,7 +65,7 @@ export const exportPengukuran = async (c: Context) => {
   c.header("Content-Disposition", `attachment; filename="${filename}"`);
   c.header("Content-Length", buffer.length.toString());
 
-  return c.body(buffer);
+  return c.body(buffer as any);
 };
 
 /**
@@ -125,5 +125,5 @@ export const exportAnak = async (c: Context) => {
   c.header("Content-Disposition", `attachment; filename="${filename}"`);
   c.header("Content-Length", buffer.length.toString());
 
-  return c.body(buffer);
+  return c.body(buffer as any);
 };

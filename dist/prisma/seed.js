@@ -42,7 +42,7 @@ const fixMeasurement = (val) => {
 /**
  * Membuat atau mendapatkan akun untuk Ayah
  */
-async function getOrCreateAyahAccount(namaAyah) {
+async function getOrCreateAyahAccount(namaAyah, posyanduId) {
     if (!namaAyah || namaAyah === '-' || namaAyah.trim() === '')
         return null;
     // Cek apakah user ayah sudah ada berdasarkan namaLengkap
@@ -70,20 +70,34 @@ async function getOrCreateAyahAccount(namaAyah) {
             if (!signupResult || !signupResult.user) {
                 throw new Error('Signup failed for Ayah');
             }
-            userAyah = signupResult.user; // Cast if necessary or ensure type match
-            console.log(`✅ Created Ayah account: ${username} (${namaAyah})`);
+            // Update role dan posyanduId
+            userAyah = await prisma.user.update({
+                where: { id: signupResult.user.id },
+                data: {
+                    role: 'ORANG_TUA',
+                    posyanduId: posyanduId || null,
+                },
+            });
+            console.log(`✅ Created Ayah account: ${username} (${namaAyah})${posyanduId ? ` - Posyandu ID: ${posyanduId}` : ''}`);
         }
         catch (error) {
             console.error(`❌ Error creating Ayah account for ${namaAyah}:`, error);
             return null;
         }
     }
+    else if (posyanduId && !userAyah.posyanduId) {
+        // Update posyanduId jika user sudah ada tapi belum punya posyandu
+        userAyah = await prisma.user.update({
+            where: { id: userAyah.id },
+            data: { posyanduId },
+        });
+    }
     return userAyah;
 }
 /**
  * Membuat atau mendapatkan akun untuk Ibu
  */
-async function getOrCreateIbuAccount(namaIbu) {
+async function getOrCreateIbuAccount(namaIbu, posyanduId) {
     if (!namaIbu || namaIbu === '-' || namaIbu.trim() === '')
         return null;
     // Cek apakah user ibu sudah ada
@@ -111,13 +125,27 @@ async function getOrCreateIbuAccount(namaIbu) {
             if (!signupResult || !signupResult.user) {
                 throw new Error('Signup failed for Ibu');
             }
-            userIbu = signupResult.user;
-            console.log(`✅ Created Ibu account: ${username} (${namaIbu})`);
+            // Update role dan posyanduId
+            userIbu = await prisma.user.update({
+                where: { id: signupResult.user.id },
+                data: {
+                    role: 'ORANG_TUA',
+                    posyanduId: posyanduId || null,
+                },
+            });
+            console.log(`✅ Created Ibu account: ${username} (${namaIbu})${posyanduId ? ` - Posyandu ID: ${posyanduId}` : ''}`);
         }
         catch (error) {
             console.error(`❌ Error creating Ibu account for ${namaIbu}:`, error);
             return null;
         }
+    }
+    else if (posyanduId && !userIbu.posyanduId) {
+        // Update posyanduId jika user sudah ada tapi belum punya posyandu
+        userIbu = await prisma.user.update({
+            where: { id: userIbu.id },
+            data: { posyanduId },
+        });
     }
     return userIbu;
 }
@@ -125,7 +153,7 @@ async function getOrCreateIbuAccount(namaIbu) {
  * Membuat atau mendapatkan profile Ortu (pasangan ayah-ibu)
  * userId TIDAK UNIQUE, jadi bisa ada beberapa Ortu dengan userId yang sama
  */
-async function getOrCreateOrtuProfile(namaIbu, namaAyah) {
+async function getOrCreateOrtuProfile(namaIbu, namaAyah, posyanduId) {
     if ((!namaIbu || namaIbu === '-') && (!namaAyah || namaAyah === '-'))
         return null;
     // Cek berdasarkan pasangan nama ayah-ibu
@@ -138,9 +166,9 @@ async function getOrCreateOrtuProfile(namaIbu, namaAyah) {
     });
     if (!ortu) {
         try {
-            // Buat akun untuk ayah dan ibu
-            const userAyah = await getOrCreateAyahAccount(namaAyah);
-            const userIbu = await getOrCreateIbuAccount(namaIbu);
+            // Buat akun untuk ayah dan ibu dengan posyanduId
+            const userAyah = await getOrCreateAyahAccount(namaAyah, posyanduId);
+            const userIbu = await getOrCreateIbuAccount(namaIbu, posyanduId);
             // Buat profile ortu, link ke user ibu (atau ayah jika ibu tidak ada)
             // Karena userId TIDAK unique, bisa ada beberapa Ortu dengan userId yang sama
             ortu = await prisma.ortu.create({
@@ -191,7 +219,7 @@ async function seedFileUtama() {
                         },
                     });
                     const { namaAyah, namaIbu } = parseNamaOrtu(row['Nama Ortu']);
-                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah);
+                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah, posyandu.id);
                     const anak = await prisma.anak.upsert({
                         where: { nik },
                         update: {
@@ -263,7 +291,7 @@ async function seedFileBBKurang() {
                     if (!namaAnak || !tglLahir)
                         continue;
                     const { namaAyah, namaIbu } = parseNamaOrtu(row['Nama Orang Tua']);
-                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah);
+                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah, defaultPosyandu.id);
                     let anak = await prisma.anak.findFirst({
                         where: {
                             nama: { contains: namaAnak },
@@ -362,7 +390,7 @@ async function seedFileGiziKurang() {
                     }
                     const rwMatch = alamat?.match(/\/(\d+)/);
                     const rw = rwMatch ? rwMatch[1] : null;
-                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah);
+                    const ortu = await getOrCreateOrtuProfile(namaIbu, namaAyah, defaultPosyandu.id);
                     let anak = await prisma.anak.findFirst({
                         where: {
                             nama: { contains: namaAnak },
@@ -529,12 +557,24 @@ async function seedFileBumilKEK() {
 }
 // --- MAIN ---
 async function main() {
+    // Buat posyandu default terlebih dahulu untuk assign ke ADMIN
+    const defaultPosyandu = await prisma.posyandu.upsert({
+        where: { nama: 'CAMELIA 01' },
+        update: {},
+        create: {
+            nama: 'CAMELIA 01',
+            rw: '1',
+            desa: 'BANJARSARI',
+            kecamatan: 'PANGALENGAN',
+            puskesmas: 'SUKAMANAH',
+        },
+    });
     // Buat akun staff default menggunakan Better Auth
     const staffAccounts = [
-        { username: 'superadmin', role: 'SUPER_ADMIN', namaLengkap: 'Super Admin' },
-        { username: 'admin_desa', role: 'ADMIN', namaLengkap: 'Admin Desa' },
-        { username: 'bidan_desa', role: 'TENAGA_KESEHATAN', namaLengkap: 'Bidan Desa' },
-        { username: 'kader_posyandu', role: 'KADER_POSYANDU', namaLengkap: 'Kader Posyandu' },
+        { username: 'superadmin', role: 'SUPER_ADMIN', namaLengkap: 'Super Admin', posyanduId: null },
+        { username: 'admin_desa', role: 'ADMIN', namaLengkap: 'Admin Desa', posyanduId: defaultPosyandu.id },
+        { username: 'bidan_desa', role: 'TENAGA_KESEHATAN', namaLengkap: 'Bidan Desa', posyanduId: null },
+        { username: 'kader_posyandu', role: 'KADER_POSYANDU', namaLengkap: 'Kader Posyandu', posyanduId: defaultPosyandu.id },
     ];
     const defaultPassword = 'Admin123!';
     for (const acc of staffAccounts) {
@@ -555,7 +595,15 @@ async function main() {
                 if (!signupResult || !signupResult.user) {
                     throw new Error('Signup failed');
                 }
-                console.log(`✅ Created staff account via Better Auth: ${acc.username} (${email})`);
+                // Update role dan posyanduId setelah user dibuat
+                await prisma.user.update({
+                    where: { id: signupResult.user.id },
+                    data: {
+                        role: acc.role,
+                        posyanduId: acc.posyanduId,
+                    },
+                });
+                console.log(`✅ Created staff account via Better Auth: ${acc.username} (${email}) - Role: ${acc.role}${acc.posyanduId ? ` - Posyandu: ${defaultPosyandu.nama}` : ''}`);
             }
             else {
                 console.log(`ℹ️  Staff account already exists: ${acc.username}`);

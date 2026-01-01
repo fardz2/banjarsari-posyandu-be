@@ -8,6 +8,7 @@ import ibuHamilRoutes from './ibu-hamil.routes.js';
 import ortuRoutes from './ortu.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import forumRoutes from './forum.routes.js';
+import exportRoutes from './export.routes.js';
 const v1 = new Hono();
 v1.route('/users', userRoutes);
 v1.route('/posyandu', posyanduRoutes);
@@ -17,6 +18,7 @@ v1.route('/ibu-hamil', ibuHamilRoutes);
 v1.route('/ortu', ortuRoutes);
 v1.route('/dashboard', dashboardRoutes);
 v1.route('/forum', forumRoutes);
+v1.route('/export', exportRoutes);
 v1.get('/', (c) => {
     return c.json({
         success: true,

@@ -1,6 +1,6 @@
 // src/services/anak.service.ts
 import { prisma } from '../db/prisma.js';
-import { canAccessAllPosyandu, canManageMedicalData, canDeleteData, getPosyanduFilter, requirePermission, requirePosyanduAccess, } from '../utils/permission.helper.js';
+import { canAccessAllPosyandu, canCreateMedicalData, canUpdateMedicalData, canDeleteMedicalData, getPosyanduFilter, requirePermission, requirePosyanduAccess, } from '../utils/permission.helper.js';
 // SERVICE: Get all anak (filtered by permission & posyandu)
 export const getAllAnakService = async (requestingUser, filters) => {
     const posyanduFilter = getPosyanduFilter(requestingUser);
@@ -155,8 +155,8 @@ export const getMyChildrenService = async (requestingUser) => {
 };
 // SERVICE: Create anak
 export const createAnakService = async (data, requestingUser) => {
-    // Check permission: harus bisa manage medical data
-    requirePermission(canManageMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk menambah data anak');
+    // Check permission: harus bisa create medical data
+    requirePermission(canCreateMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk menambah data anak');
     // Check permission: user harus punya akses ke posyandu target
     requirePosyanduAccess(requestingUser, data.posyanduId, 'posyandu');
     const anak = await prisma.anak.create({
@@ -195,7 +195,7 @@ export const updateAnakService = async (nik, data, requestingUser) => {
     // Get existing anak
     const existingAnak = await getAnakByNikService(nik, requestingUser);
     // Check permission
-    requirePermission(canManageMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk update data anak');
+    requirePermission(canUpdateMedicalData(requestingUser.role), 'Anda tidak memiliki permission untuk update data anak');
     // If changing posyanduId, check access to new posyandu
     if (data.posyanduId && data.posyanduId !== existingAnak.posyanduId) {
         requirePosyanduAccess(requestingUser, data.posyanduId, 'posyandu baru');
@@ -236,7 +236,7 @@ export const deleteAnakService = async (nik, requestingUser) => {
     // Get existing anak
     await getAnakByNikService(nik, requestingUser);
     // Check permission: only admin and super admin can delete
-    requirePermission(canDeleteData(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data anak');
+    requirePermission(canDeleteMedicalData(requestingUser.role), 'Hanya Admin dan Super Admin yang bisa delete data anak');
     // Delete all pengukuran first
     await prisma.pengukuranAnak.deleteMany({
         where: { anakNik: nik },

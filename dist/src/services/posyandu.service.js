@@ -13,7 +13,6 @@ export const getAllPosyanduService = async (requestingUser) => {
         include: {
             _count: {
                 select: {
-                    users: true,
                     anak: true,
                     ibuHamil: true,
                 },
@@ -21,7 +20,23 @@ export const getAllPosyanduService = async (requestingUser) => {
         },
         orderBy: { nama: 'asc' },
     });
-    return posyandu;
+    // Manually count kader for each posyandu
+    const posyanduWithKaderCount = await Promise.all(posyandu.map(async (p) => {
+        const kaderCount = await prisma.user.count({
+            where: {
+                posyanduId: p.id,
+                role: 'KADER_POSYANDU',
+            },
+        });
+        return {
+            ...p,
+            _count: {
+                ...p._count,
+                users: kaderCount, // Only count kader
+            },
+        };
+    }));
+    return posyanduWithKaderCount;
 };
 // SERVICE: Get posyandu by ID
 export const getPosyanduByIdService = async (id, requestingUser) => {
@@ -30,7 +45,6 @@ export const getPosyanduByIdService = async (id, requestingUser) => {
         include: {
             _count: {
                 select: {
-                    users: true,
                     anak: true,
                     ibuHamil: true,
                 },
@@ -46,7 +60,20 @@ export const getPosyanduByIdService = async (id, requestingUser) => {
             throw new Error('Anda tidak memiliki akses ke posyandu ini');
         }
     }
-    return posyandu;
+    // Manually count kader
+    const kaderCount = await prisma.user.count({
+        where: {
+            posyanduId: posyandu.id,
+            role: 'KADER_POSYANDU',
+        },
+    });
+    return {
+        ...posyandu,
+        _count: {
+            ...posyandu._count,
+            users: kaderCount, // Only count kader
+        },
+    };
 };
 // SERVICE: Create posyandu (super admin only)
 export const createPosyanduService = async (data, requestingUser) => {
@@ -63,14 +90,26 @@ export const createPosyanduService = async (data, requestingUser) => {
         include: {
             _count: {
                 select: {
-                    users: true,
                     anak: true,
                     ibuHamil: true,
                 },
             },
         },
     });
-    return posyandu;
+    // Manually count kader (will be 0 for new posyandu)
+    const kaderCount = await prisma.user.count({
+        where: {
+            posyanduId: posyandu.id,
+            role: 'KADER_POSYANDU',
+        },
+    });
+    return {
+        ...posyandu,
+        _count: {
+            ...posyandu._count,
+            users: kaderCount,
+        },
+    };
 };
 // SERVICE: Update posyandu
 export const updatePosyanduService = async (id, data, requestingUser) => {
@@ -90,14 +129,26 @@ export const updatePosyanduService = async (id, data, requestingUser) => {
         include: {
             _count: {
                 select: {
-                    users: true,
                     anak: true,
                     ibuHamil: true,
                 },
             },
         },
     });
-    return updatedPosyandu;
+    // Manually count kader
+    const kaderCount = await prisma.user.count({
+        where: {
+            posyanduId: updatedPosyandu.id,
+            role: 'KADER_POSYANDU',
+        },
+    });
+    return {
+        ...updatedPosyandu,
+        _count: {
+            ...updatedPosyandu._count,
+            users: kaderCount,
+        },
+    };
 };
 // SERVICE: Delete posyandu (super admin only)
 export const deletePosyanduService = async (id, requestingUser) => {

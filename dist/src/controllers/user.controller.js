@@ -21,7 +21,16 @@ export const createUser = async (c) => {
 export const getAllUsers = async (c) => {
     try {
         const user = c.get('user');
-        const users = await getAllUsersService(user);
+        // Extract filter query params
+        const role = c.req.query('role');
+        const posyanduIdStr = c.req.query('posyanduId');
+        const posyanduId = posyanduIdStr ? parseInt(posyanduIdStr, 10) : undefined;
+        // Pass filters to service
+        const filters = {
+            role,
+            posyanduId: posyanduId && !isNaN(posyanduId) ? posyanduId : undefined,
+        };
+        const users = await getAllUsersService(user, filters);
         return successResponse(c, users, {
             message: 'Daftar user berhasil diambil',
             meta: {
