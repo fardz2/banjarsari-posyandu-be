@@ -1,4 +1,0 @@
-/**
- * Forum Interface Definitions
- */
-export {};
