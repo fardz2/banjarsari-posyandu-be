@@ -183,6 +183,38 @@
 - **SUPER_ADMIN**: Can export from all posyandu or filter by specific posyandu
 - **ADMIN, TENAGA_KESEHATAN, KADER_POSYANDU**: Can only export from their assigned posyandu
 
+#### Forum / Q&A (`/api/v1/forum`)
+
+| Method | Endpoint                     | Deskripsi                 | Roles Allowed                                |
+| ------ | ---------------------------- | ------------------------- | -------------------------------------------- |
+| GET    | `/api/v1/forum`              | Get all forums (filtered) | All authenticated users                      |
+| GET    | `/api/v1/forum/:id`          | Get forum by ID           | All authenticated users (filtered by access) |
+| POST   | `/api/v1/forum`              | Create forum baru         | ORANG_TUA, SUPER_ADMIN                       |
+| PUT    | `/api/v1/forum/:id`          | Update forum              | Creator only                                 |
+| DELETE | `/api/v1/forum/:id`          | Delete forum              | Creator only                                 |
+| GET    | `/api/v1/forum/:id/comments` | Get forum comments        | All authenticated users (filtered by access) |
+| POST   | `/api/v1/forum/:id/comments` | Add comment to forum      | All authenticated users                      |
+
+**Query Parameters** (GET `/api/v1/forum`):
+
+- `page` (number): Page number for pagination
+- `limit` (number): Items per page
+- `search` (string): Search in forum title and content
+- `status` (string): Filter by forum status (OPEN, ANSWERED, CLOSED)
+- `posyanduId` (number): Filter by posyandu ID (filter by creator's posyandu)
+
+**Example**:
+
+```
+GET /api/v1/forum?status=OPEN&posyanduId=1&page=1&limit=10
+```
+
+**RBAC Rules**:
+
+- **ORANG_TUA**: Can only see and create their own forums
+- **TENAGA_KESEHATAN, ADMIN, SUPER_ADMIN**: Can see all forums, can filter by status and posyandu
+- **Auto-status update**: When TENAGA_KESEHATAN adds a comment to an OPEN forum, status automatically changes to ANSWERED
+
 ---
 
 ## 3. Permission Matrix
@@ -670,8 +702,31 @@ user: {
 #### Trusted Origins
 
 ```typescript
-trustedOrigins: ["http://localhost:5174"];
+trustedOrigins: ["http://localhost:5173", "https://kms-banjarsari.vercel.app"];
 ```
+
+**Note**: Untuk production deployment, tambahkan URL frontend production ke `trustedOrigins`.
+
+#### Cross-Origin Cookie Configuration
+
+Untuk mendukung cross-origin authentication (frontend dan backend di domain berbeda):
+
+```typescript
+advanced: {
+  defaultCookieAttributes: {
+    sameSite: "none",    // Allow cross-origin cookies
+    secure: true,        // Required for sameSite: "none" (HTTPS only)
+    httpOnly: true,      // Security best practice
+  },
+}
+```
+
+**Important Notes**:
+
+- `sameSite: "none"` diperlukan untuk cross-origin requests
+- `secure: true` wajib diset ketika menggunakan `sameSite: "none"` (hanya bekerja di HTTPS)
+- `httpOnly: true` untuk keamanan tambahan (cookie tidak bisa diakses via JavaScript)
+- Jangan gunakan `crossSubDomainCookies` untuk cross-origin (hanya untuk subdomain sharing)
 
 ### Route Organization
 

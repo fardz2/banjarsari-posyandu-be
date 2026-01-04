@@ -78,11 +78,13 @@ export const getForumCommentsService = async (
 
 export const getAllForumsService = async (
   user: User,
-  params?: { page?: number; limit?: number; search?: string }
+  params?: { page?: number; limit?: number; search?: string; status?: string; posyanduId?: number }
 ) => {
   const page = params?.page || 1;
   const limit = params?.limit || 10;
   const search = params?.search;
+  const status = params?.status;
+  const posyanduId = params?.posyanduId;
   const skip = (page - 1) * limit;
 
   const where: any = {};
@@ -99,6 +101,18 @@ export const getAllForumsService = async (
       { title: { contains: search, mode: "insensitive" } },
       { content: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  // Status filter
+  if (status) {
+    where.status = status;
+  }
+
+  // Posyandu filter - filter by creator's posyandu
+  if (posyanduId) {
+    where.createdBy = {
+      posyanduId: posyanduId,
+    };
   }
 
   const [forums, total] = await Promise.all([

@@ -25,7 +25,7 @@ export const auth = betterAuth({
 
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL,
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(",") || ["http://localhost:5173"],
 
   emailAndPassword: { enabled: true },
 
@@ -41,6 +41,13 @@ export const auth = betterAuth({
       role: { type: "string", defaultValue: "ORANG_TUA" },
       displayUsername: { type: "string", required: false },
       posyanduId: { type: "number", required: false },
+    },
+  },
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true, // required for sameSite: "none"
+      httpOnly: true,
     },
   },
 });

@@ -17,8 +17,18 @@ export const getAllForums = async (c: Context) => {
     const page = Number(c.req.query("page")) || 1;
     const limit = Number(c.req.query("limit")) || 10;
     const search = c.req.query("search");
+    const status = c.req.query("status");
+    const posyanduId = c.req.query("posyanduId") 
+      ? Number(c.req.query("posyanduId")) 
+      : undefined;
 
-    const result = await getAllForumsService(user, { page, limit, search });
+    const result = await getAllForumsService(user, { 
+      page, 
+      limit, 
+      search,
+      status,
+      posyanduId 
+    });
     
     return successResponse(c, result.data, { meta: result.meta });
   } catch (error: any) {
