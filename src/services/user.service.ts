@@ -69,12 +69,14 @@ export const createUserService = async (
     data: {
       role: data.role || 'ORANG_TUA',
       posyanduId: data.posyanduId || null,
+      jenisKelamin: data.jenisKelamin,
     },
     select: {
       id: true,
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -94,22 +96,49 @@ export const createUserService = async (
 // SERVICE: Ambil semua user (filtered by permission)
 export const getAllUsersService = async (
   requestingUser: UserContext,
-  filters?: { role?: Role; posyanduId?: number }
+  filters?: { 
+    role?: string; // Comma-separated roles for multiselect
+    posyanduId?: string; // Comma-separated posyandu IDs for multiselect
+    unassignedOrtu?: boolean; 
+    jenisKelamin?: string 
+  }
 ): Promise<UserResponse[]> => {
   const posyanduFilter = getPosyanduFilter(requestingUser);
 
   // Build where clause with filters
   const where: any = { ...posyanduFilter };
 
-  // Apply role filter if provided
+  // Apply role filter if provided (support comma-separated values)
   if (filters?.role) {
-    where.role = filters.role;
+    const roles = filters.role.split(',').map(r => r.trim()) as Role[];
+    if (roles.length === 1) {
+      where.role = roles[0];
+    } else {
+      where.role = { in: roles };
+    }
+  }
+
+  // Filter unassigned users (users NOT in Ortu table as Ayah OR Ibu)
+  if (filters?.unassignedOrtu) {
+    where.ortuAsAyah = { none: {} };
+    where.ortuAsIbu = { none: {} };
   }
 
   // Apply posyandu filter if provided (only for SUPER_ADMIN)
+  // Support comma-separated values for multiselect
   // ADMIN/KADER/NAKES already filtered by getPosyanduFilter
   if (filters?.posyanduId && canAccessAllPosyandu(requestingUser.role)) {
-    where.posyanduId = filters.posyanduId;
+    const posyanduIds = filters.posyanduId.split(',').map(id => parseInt(id.trim()));
+    if (posyanduIds.length === 1) {
+      where.posyanduId = posyanduIds[0];
+    } else {
+      where.posyanduId = { in: posyanduIds };
+    }
+  }
+
+  // Filter by gender
+  if (filters?.jenisKelamin) {
+    where.jenisKelamin = filters.jenisKelamin;
   }
 
   const users = await prisma.user.findMany({
@@ -119,6 +148,7 @@ export const getAllUsersService = async (
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -148,6 +178,7 @@ export const getUserByIdService = async (
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -197,12 +228,14 @@ export const updateUserService = async (
       name: data.name,
       username: data.username,
       posyanduId: data.posyanduId,
+      jenisKelamin: data.jenisKelamin,
     },
     select: {
       id: true,
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -259,6 +292,7 @@ export const assignRoleService = async (
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -286,6 +320,7 @@ export const getUserProfileService = async (
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {
@@ -322,6 +357,7 @@ export const updateUserProfileService = async (
       username: true,
       email: true,
       name: true,
+      jenisKelamin: true,
       role: true,
       posyanduId: true,
       posyandu: {

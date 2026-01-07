@@ -7,6 +7,7 @@ export interface UserResponse {
   username: string | null;
   email: string;
   name: string;
+  jenisKelamin?: string | null;
   role: Role;
   posyanduId: number | null;
   posyandu?: {
@@ -22,12 +23,14 @@ export interface CreateUserInput {
   password: string;
   username: string;
   name: string;
+  jenisKelamin?: string;
   role?: Role;
   posyanduId?: number;
 }
 
 export interface UpdateUserInput {
   name?: string;
+  jenisKelamin?: string;
   username?: string;
   posyanduId?: number;
 }

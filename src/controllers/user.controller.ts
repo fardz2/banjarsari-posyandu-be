@@ -39,15 +39,18 @@ export const getAllUsers = async (c: Context) => {
   try {
     const user = c.get('user') as UserContext;
     
-    // Extract filter query params
-    const role = c.req.query('role') as Role | undefined;
-    const posyanduIdStr = c.req.query('posyanduId');
-    const posyanduId = posyanduIdStr ? parseInt(posyanduIdStr, 10) : undefined;
+    // Extract filter query params (support comma-separated values)
+    const role = c.req.query('role'); // Comma-separated roles
+    const posyanduId = c.req.query('posyanduId'); // Comma-separated posyandu IDs
+    const unassignedOrtu = c.req.query('unassignedOrtu') === 'true';
+    const jenisKelamin = c.req.query('jenisKelamin');
 
     // Pass filters to service
     const filters = {
       role,
-      posyanduId: posyanduId && !isNaN(posyanduId) ? posyanduId : undefined,
+      posyanduId,
+      unassignedOrtu,
+      jenisKelamin,
     };
 
     const users = await getAllUsersService(user, filters);

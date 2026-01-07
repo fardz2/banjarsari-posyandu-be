@@ -13,10 +13,19 @@ export interface OrtuResponse {
   };
 }
 
-export interface UpdateOrtuInput {
+
+export interface CreateOrtuInput {
   nik?: string;
-  namaAyah?: string;
-  namaIbu?: string;
   alamat?: string;
   telepon?: string;
+  userAyahId?: string;
+  userIbuId?: string;
+}
+
+export interface UpdateOrtuInput {
+  nik?: string;
+  alamat?: string;
+  telepon?: string;
+  userAyahId?: string;
+  userIbuId?: string;
 }

@@ -6,12 +6,33 @@ import {
   getAllOrtuService,
   getOrtuByIdService,
   getMyOrtuProfileService,
+  createOrtuService,
   updateOrtuService,
   updateMyOrtuProfileService,
   deleteOrtuService,
 } from '../services/ortu.service.js';
-import type { UpdateOrtuInput } from '../utils/interfaces/ortu.interface.js';
+import type { CreateOrtuInput, UpdateOrtuInput } from '../utils/interfaces/ortu.interface.js';
 import type { UserContext } from '../utils/permission.helper.js';
+
+export const createOrtu = async (c: Context) => {
+  try {
+    const user = c.get('user') as UserContext;
+    const body = await c.req.json<CreateOrtuInput>();
+
+    const ortu = await createOrtuService(body, user);
+
+    return successResponse(c, ortu, {
+      message: 'Data orang tua berhasil dibuat',
+      status: 201,
+    });
+  } catch (error: any) {
+    console.error('Error createOrtu:', error);
+    const status = error.message.includes('permission') ? 403 : 400;
+    return errorResponse(c, error.message || 'Gagal membuat data orang tua', {
+      status,
+    });
+  }
+};
 
 export const getAllOrtu = async (c: Context) => {
   try {

@@ -33,6 +33,7 @@ model User {
   email         String         @unique
   emailVerified Boolean        @default(false)
   name          String
+  jenisKelamin  String?
   image         String?        @db.Text
   updatedAt     DateTime       @updatedAt
   sessions      Session[]
@@ -99,14 +100,12 @@ model Ortu {
   userIbuId  String?
   userIbu    User?   @relation("UserIbu", fields: [userIbuId], references: [id])
 
-  nik      String? @unique
-  namaAyah String?
-  namaIbu  String?
-  alamat   String?
-  telepon  String?
-  anak     Anak[]
-  user     User?   @relation(fields: [userId], references: [id])
-  userId   String?
+  nik     String? @unique
+  alamat  String?
+  telepon String?
+  anak    Anak[]
+  user    User?   @relation(fields: [userId], references: [id])
+  userId  String?
 
   @@index([userAyahId])
   @@index([userIbuId])

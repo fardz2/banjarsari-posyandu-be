@@ -6,13 +6,14 @@ import {
   getAllOrtu,
   getOrtuById,
   getMyOrtuProfile,
+  createOrtu,
   updateOrtu,
   updateMyOrtuProfile,
   deleteOrtu,
 } from '../../controllers/ortu.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { requireRole } from '../../middlewares/role.middleware.js';
-import { updateOrtuSchema } from '../../utils/validations/ortu.validation.js';
+import { createOrtuSchema, updateOrtuSchema } from '../../utils/validations/ortu.validation.js';
 
 const ortuRoutes = new Hono();
 
@@ -21,6 +22,14 @@ ortuRoutes.use('*', authMiddleware);
 // Profile endpoints untuk ORANG_TUA
 ortuRoutes.get('/me', getMyOrtuProfile);
 ortuRoutes.put('/me', zValidator('json', updateOrtuSchema), updateMyOrtuProfile);
+
+// Management endpoints
+ortuRoutes.post(
+  '/',
+  requireRole('SUPER_ADMIN', 'ADMIN', 'TENAGA_KESEHATAN', 'KADER_POSYANDU'),
+  zValidator('json', createOrtuSchema),
+  createOrtu
+);
 
 // Management endpoints
 ortuRoutes.get(

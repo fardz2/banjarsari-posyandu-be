@@ -22,6 +22,15 @@ export interface AnakResponse {
   } | null;
 }
 
+
+export interface OrtuDataInput {
+  nik?: string; // NIK Kepala Keluarga
+  alamat?: string;
+  telepon?: string;
+  userAyahId?: string;
+  userIbuId?: string;
+}
+
 export interface CreateAnakInput {
   nik: string;
   nama: string;
@@ -33,6 +42,7 @@ export interface CreateAnakInput {
   rw?: string;
   posyanduId: number;
   ortuId?: number;
+  ortuData?: OrtuDataInput;
 }
 
 export interface UpdateAnakInput {

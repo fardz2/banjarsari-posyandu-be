@@ -928,25 +928,35 @@ npx prisma db seed
 
 ---
 
-**Last Updated**: 2026-01-01  
+**Last Updated**: 2026-01-07  
 **API Version**: 1.0.0  
 **Framework**: Hono v4.11.2  
 **Validation**: Zod + @hono/zod-validator
 
 **Recent Updates**:
 
-- ✅ Added Zod validation to all CRUD endpoints
-- ✅ Organized interfaces in `src/utils/interfaces/`
-- ✅ Organized validation schemas in `src/utils/validations/`
-- ✅ Implemented role-based access control with permission helpers
-- ✅ Created 6 major CRUD modules (User, Posyandu, Anak, Pengukuran, IbuHamil, Ortu)
-- ✅ 35+ endpoints with comprehensive permission matrix
-- ✅ Enhanced dashboard services with strict data scoping for ORANG_TUA role
-- ✅ Fixed dashboard summary queries to prevent schema mismatch errors
-- ✅ Implemented entity-specific filters for dashboard statistics
-- ✅ **NEW**: Implemented Excel export feature for Pengukuran and Anak data with RBAC filtering
-- ✅ **NEW**: Added ExcelJS integration for generating `.xlsx` files
-- ✅ **IMPORTANT**: Fixed type safety issues in export service - always use Prisma-generated types, not Better-Auth types
+- ✅ **Dashboard Service Fixes** (2026-01-06):
+
+  - Fixed `ORANG_TUA` role dashboard statistics to correctly count children and measurements
+  - Updated `dashboard.service.ts` to properly scope data by `ortuId` for parent users
+  - Ensured consistent role-based data filtering across all dashboard queries
+
+- ✅ **Validation & Organization** (2026-01-01):
+
+  - Added Zod validation to all CRUD endpoints
+  - Organized interfaces in `src/utils/interfaces/`
+  - Organized validation schemas in `src/utils/validations/`
+  - Implemented role-based access control with permission helpers
+  - Created 6 major CRUD modules (User, Posyandu, Anak, Pengukuran, IbuHamil, Ortu)
+  - 35+ endpoints with comprehensive permission matrix
+
+- ✅ **Data Scoping & Export** (2025-12-31):
+  - Enhanced dashboard services with strict data scoping for ORANG_TUA role
+  - Fixed dashboard summary queries to prevent schema mismatch errors
+  - Implemented entity-specific filters for dashboard statistics
+  - Implemented Excel export feature for Pengukuran and Anak data with RBAC filtering
+  - Added ExcelJS integration for generating `.xlsx` files
+  - Fixed type safety issues in export service - always use Prisma-generated types, not Better-Auth types
 
 ### Type Safety Best Practices
 

@@ -15,12 +15,17 @@ export const getDashboardSummaryService = async (user: UserContext) => {
     // No filters for Super Admin & Tenaga Kesehatan
   } else if (user.role === 'ORANG_TUA') {
     // Strict scope for Parents
-    userFilter = { id: user.id }; // Only see themselves? Or maybe restricted completely. For Dashboard, maybe just themselves or 0.
-    anakFilter = { ortu: { userId: user.id } };
-    ibuHamilFilter = { id: -1 }; // Parents cannot see Ibu Hamil
-    pengukuranFilter = { anak: { ortu: { userId: user.id } } };
-    ortuFilter = { userId: user.id };
-    posyanduFilter = { id: -1 }; // Parents don't manage posyandu
+    userFilter = { id: user.id };
+    const ortuScope = {
+      ortu: {
+        OR: [{ userAyahId: user.id }, { userIbuId: user.id }]
+      }
+    };
+    anakFilter = ortuScope;
+    ibuHamilFilter = { id: -1 }; 
+    pengukuranFilter = { anak: ortuScope };
+    ortuFilter = { OR: [{ userAyahId: user.id }, { userIbuId: user.id }] };
+    posyanduFilter = { id: -1 };
   } else {
     // KADER_POSYANDU, ADMIN (assigned to posyandu)
     // Must have posyanduId. If not, they see nothing.
@@ -75,7 +80,7 @@ export const getGenderStatsService = async (user: UserContext) => {
   if (user.role === 'SUPER_ADMIN' || user.role === 'TENAGA_KESEHATAN') {
     wherePosyandu = {};
   } else if (user.role === 'ORANG_TUA') {
-     wherePosyandu = { ortu: { userId: user.id } };
+     wherePosyandu = { ortu: { OR: [{ userAyahId: user.id }, { userIbuId: user.id }] } };
   } else if (user.posyanduId) {
     wherePosyandu = { posyanduId: user.posyanduId };
   }
@@ -100,7 +105,7 @@ export const getNutritionalStatsService = async (user: UserContext) => {
   if (user.role === 'SUPER_ADMIN' || user.role === 'TENAGA_KESEHATAN') {
     wherePosyandu = {};
   } else if (user.role === 'ORANG_TUA') {
-    wherePosyandu = { anak: { ortu: { userId: user.id } } };
+    wherePosyandu = { anak: { ortu: { OR: [{ userAyahId: user.id }, { userIbuId: user.id }] } } };
   } else if (user.posyanduId) {
     wherePosyandu = { anak: { posyanduId: user.posyanduId } };
   }
@@ -142,7 +147,7 @@ export const getNutritionalStatsByPosyanduService = async (user: UserContext) =>
   if (user.role === 'SUPER_ADMIN' || user.role === 'TENAGA_KESEHATAN') {
     wherePosyandu = {};
   } else if (user.role === 'ORANG_TUA') {
-    wherePosyandu = { anak: { ortu: { userId: user.id } } };
+    wherePosyandu = { anak: { ortu: { OR: [{ userAyahId: user.id }, { userIbuId: user.id }] } } };
   } else if (user.posyanduId) {
     wherePosyandu = { anak: { posyanduId: user.posyanduId } };
   }
@@ -216,7 +221,7 @@ export const getVisitTrendsService = async (user: UserContext) => {
   if (user.role === 'SUPER_ADMIN' || user.role === 'TENAGA_KESEHATAN') {
     wherePosyandu = {};
   } else if (user.role === 'ORANG_TUA') {
-    wherePosyandu = { anak: { ortu: { userId: user.id } } };
+    wherePosyandu = { anak: { ortu: { OR: [{ userAyahId: user.id }, { userIbuId: user.id }] } } };
   } else if (user.posyanduId) {
     wherePosyandu = { anak: { posyanduId: user.posyanduId } };
   }
