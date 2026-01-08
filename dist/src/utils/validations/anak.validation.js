@@ -14,6 +14,26 @@ export const createAnakSchema = z.object({
     rw: z.string().optional(),
     posyanduId: z.number().int().positive('Posyandu ID harus positif'),
     ortuId: z.number().int().positive('Ortu ID harus positif').optional(),
+    ortuData: z
+        .object({
+        namaAyah: z.string().optional(),
+        namaIbu: z.string().optional(),
+        nik: z.string().optional(), // NIK Kepala Keluarga
+        alamat: z.string().optional(),
+        telepon: z.string().optional(),
+        userAyahId: z.string().optional(),
+        userIbuId: z.string().optional(),
+    })
+        .optional()
+        .refine((data) => {
+        if (!data)
+            return true; // If not provided, it's valid (ortuId might be used)
+        return ((data.namaAyah && data.namaAyah.length > 0) ||
+            (data.namaIbu && data.namaIbu.length > 0));
+    }, {
+        message: 'Minimal satu nama orang tua (Ayah atau Ibu) wajib diisi',
+        path: ['namaAyah'], // Error will be attached to namaAyah
+    }),
 });
 // Schema untuk update anak
 export const updateAnakSchema = z.object({

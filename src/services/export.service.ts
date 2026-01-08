@@ -75,8 +75,12 @@ export const exportPengukuranService = async (
           },
           ortu: {
             select: {
-              namaIbu: true,
-              namaAyah: true,
+              userIbu: {
+                select: { name: true },
+              },
+              userAyah: {
+                select: { name: true },
+              },
             },
           },
         },
@@ -126,8 +130,8 @@ export const exportPengukuranService = async (
       lingkarKepala: item.lingkarKepala || "-",
       statusGizi: item.status_bb_tb || "-",
       posyandu: item.anak.posyandu.nama,
-      namaIbu: item.anak.ortu?.namaIbu || "-",
-      namaAyah: item.anak.ortu?.namaAyah || "-",
+      namaIbu: item.anak.ortu?.userIbu?.name || "-",
+      namaAyah: item.anak.ortu?.userAyah?.name || "-",
     });
   });
 
@@ -184,8 +188,12 @@ export const exportAnakService = async (
       },
       ortu: {
         select: {
-          namaIbu: true,
-          namaAyah: true,
+          userIbu: {
+            select: { name: true },
+          },
+          userAyah: {
+            select: { name: true },
+          },
           alamat: true,
         },
       },
@@ -227,8 +235,8 @@ export const exportAnakService = async (
       nama: item.nama,
       jenisKelamin: item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
       tanggalLahir: item.tglLahir.toISOString().split("T")[0],
-      namaIbu: item.ortu?.namaIbu || "-",
-      namaAyah: item.ortu?.namaAyah || "-",
+      namaIbu: item.ortu?.userIbu?.name || "-",
+      namaAyah: item.ortu?.userAyah?.name || "-",
       alamat: item.ortu?.alamat || "-",
       posyandu: item.posyandu.nama,
       tanggalRegistrasi: new Date().toISOString().split("T")[0],

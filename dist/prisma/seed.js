@@ -76,6 +76,7 @@ async function getOrCreateAyahAccount(namaAyah, posyanduId) {
                 data: {
                     role: 'ORANG_TUA',
                     posyanduId: posyanduId || null,
+                    jenisKelamin: 'Laki-laki',
                 },
             });
             console.log(`✅ Created Ayah account: ${username} (${namaAyah})${posyanduId ? ` - Posyandu ID: ${posyanduId}` : ''}`);
@@ -85,11 +86,14 @@ async function getOrCreateAyahAccount(namaAyah, posyanduId) {
             return null;
         }
     }
-    else if (posyanduId && !userAyah.posyanduId) {
-        // Update posyanduId jika user sudah ada tapi belum punya posyandu
+    else {
+        // Ensure gender is set for existing users
         userAyah = await prisma.user.update({
             where: { id: userAyah.id },
-            data: { posyanduId },
+            data: {
+                jenisKelamin: 'Laki-laki',
+                posyanduId: (posyanduId && !userAyah.posyanduId) ? posyanduId : undefined
+            },
         });
     }
     return userAyah;
@@ -131,6 +135,7 @@ async function getOrCreateIbuAccount(namaIbu, posyanduId) {
                 data: {
                     role: 'ORANG_TUA',
                     posyanduId: posyanduId || null,
+                    jenisKelamin: 'Perempuan',
                 },
             });
             console.log(`✅ Created Ibu account: ${username} (${namaIbu})${posyanduId ? ` - Posyandu ID: ${posyanduId}` : ''}`);
@@ -140,11 +145,14 @@ async function getOrCreateIbuAccount(namaIbu, posyanduId) {
             return null;
         }
     }
-    else if (posyanduId && !userIbu.posyanduId) {
-        // Update posyanduId jika user sudah ada tapi belum punya posyandu
+    else {
+        // Ensure gender is set for existing users
         userIbu = await prisma.user.update({
             where: { id: userIbu.id },
-            data: { posyanduId },
+            data: {
+                jenisKelamin: 'Perempuan',
+                posyanduId: (posyanduId && !userIbu.posyanduId) ? posyanduId : undefined
+            },
         });
     }
     return userIbu;
@@ -156,38 +164,39 @@ async function getOrCreateIbuAccount(namaIbu, posyanduId) {
 async function getOrCreateOrtuProfile(namaIbu, namaAyah, posyanduId) {
     if ((!namaIbu || namaIbu === '-') && (!namaAyah || namaAyah === '-'))
         return null;
-    // Cek berdasarkan pasangan nama ayah-ibu
-    let ortu = await prisma.ortu.findFirst({
-        where: {
-            namaIbu: { equals: namaIbu.trim() },
-            namaAyah: { equals: namaAyah.trim() },
-        },
-        include: { userAyah: true, userIbu: true },
-    });
-    if (!ortu) {
-        try {
-            // Buat akun untuk ayah dan ibu dengan posyanduId
-            const userAyah = await getOrCreateAyahAccount(namaAyah, posyanduId);
-            const userIbu = await getOrCreateIbuAccount(namaIbu, posyanduId);
-            // Buat profile ortu, link ke user ibu (atau ayah jika ibu tidak ada)
-            // Karena userId TIDAK unique, bisa ada beberapa Ortu dengan userId yang sama
+    try {
+        // 1. Dapatkan/Buat User Account terlebih dahulu
+        const userAyah = await getOrCreateAyahAccount(namaAyah, posyanduId);
+        const userIbu = await getOrCreateIbuAccount(namaIbu, posyanduId);
+        // 2. Cari profile Ortu yang existing berdasarkan ID User (strict match jika ada)
+        const whereClause = {};
+        if (userAyah)
+            whereClause.userAyahId = userAyah.id;
+        if (userIbu)
+            whereClause.userIbuId = userIbu.id;
+        if (Object.keys(whereClause).length === 0)
+            return null;
+        let ortu = await prisma.ortu.findFirst({
+            where: whereClause,
+            include: { userAyah: true, userIbu: true },
+        });
+        // 3. Jika belum ada, buat baru
+        if (!ortu) {
             ortu = await prisma.ortu.create({
                 data: {
                     userAyahId: userAyah?.id || null,
                     userIbuId: userIbu?.id || null,
-                    namaIbu: namaIbu.trim() || '-',
-                    namaAyah: namaAyah.trim() || '-',
                 },
                 include: { userAyah: true, userIbu: true },
             });
-            console.log(`✅ Created Ortu profile: ${namaAyah} & ${namaIbu}`);
+            console.log(`✅ Created Ortu profile linked to Users: ${namaAyah} & ${namaIbu}`);
         }
-        catch (error) {
-            console.error(`❌ Error creating Ortu profile for ${namaAyah} & ${namaIbu}:`, error);
-            return null;
-        }
+        return ortu;
     }
-    return ortu;
+    catch (error) {
+        console.error(`❌ Error processing Ortu profile for ${namaAyah} & ${namaIbu}:`, error);
+        return null;
+    }
 }
 // --- SEEDING FUNCTIONS ---
 async function seedFileUtama() {

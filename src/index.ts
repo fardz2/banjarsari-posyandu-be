@@ -46,23 +46,7 @@ app.notFound((c) => {
   return c.json({ success: false, message: "Route tidak ditemukan" }, 404);
 });
 
-// Jalankan server HANYA jika file ini dijalankan langsung (bukan diimport)
-// Helper to check if file is main module (works for ES Modules)
-import { fileURLToPath } from "url";
-import path from "path";
-
-const isMainModule = (metaUrl: string) => {
-  if (!metaUrl) return false;
-  const modulePath = fileURLToPath(metaUrl);
-  const entryPath = process.argv[1];
-  
-  // Normalize paths for Windows/Unix compatibility
-  return path.resolve(modulePath) === path.resolve(entryPath);
-};
-
-// Jalankan server HANYA jika file ini dijalankan langsung
-if (isMainModule(import.meta.url)) {
-  const port = Number(process.env.PORT) || 3001;
+  const port = Number(process.env.PORT) || 3000;
   serve(
     {
       fetch: app.fetch,
@@ -76,5 +60,5 @@ if (isMainModule(import.meta.url)) {
       );
     }
   );
-}
+
 

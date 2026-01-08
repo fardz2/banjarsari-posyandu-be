@@ -52,19 +52,19 @@ export function determineStatus(zScore, type) {
     if (type === 'BB/U') {
         // Berat Badan menurut Umur (Weight-for-age)
         if (zScore < -3)
-            return "Berat Badan Sangat Kurang"; // Severely underweight
+            return "Sangat Kurang";
         if (zScore < -2)
-            return "Berat Badan Kurang"; // Underweight
+            return "Kurang";
         if (zScore > 2)
-            return "Risiko Berat Badan Lebih";
-        return "Berat Badan Normal";
+            return "Lebih";
+        return "Normal";
     }
     if (type === 'TB/U') {
         // Tinggi Badan menurut Umur (Height-for-age)
         if (zScore < -3)
-            return "Sangat Pendek (Severely Stunted)";
+            return "Sangat Pendek";
         if (zScore < -2)
-            return "Pendek (Stunted)";
+            return "Pendek";
         if (zScore > 3)
             return "Tinggi";
         return "Normal";
@@ -72,16 +72,16 @@ export function determineStatus(zScore, type) {
     if (type === 'BB/TB') {
         // Berat Badan menurut Tinggi Badan (Weight-for-length/height)
         if (zScore < -3)
-            return "Gizi Buruk (Severely Wasted)";
+            return "Gizi Buruk";
         if (zScore < -2)
-            return "Gizi Kurang (Wasted)";
+            return "Gizi Kurang";
         if (zScore > 3)
             return "Obesitas";
         if (zScore > 2)
-            return "Gizi Lebih (Overweight)";
+            return "Gizi Lebih";
         if (zScore > 1)
-            return "Berisiko Gizi Lebih";
-        return "Gizi Baik (Normal)";
+            return "Risiko Gizi Lebih";
+        return "Gizi Baik";
     }
     if (type === 'LK/U') {
         // Lingkar Kepala menurut Umur (Head Circumference-for-age)

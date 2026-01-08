@@ -1,6 +1,24 @@
 // src/controllers/ortu.controller.ts
 import { successResponse, errorResponse } from '../utils/response.helper.js';
-import { getAllOrtuService, getOrtuByIdService, getMyOrtuProfileService, updateOrtuService, updateMyOrtuProfileService, deleteOrtuService, } from '../services/ortu.service.js';
+import { getAllOrtuService, getOrtuByIdService, getMyOrtuProfileService, createOrtuService, updateOrtuService, updateMyOrtuProfileService, deleteOrtuService, } from '../services/ortu.service.js';
+export const createOrtu = async (c) => {
+    try {
+        const user = c.get('user');
+        const body = await c.req.json();
+        const ortu = await createOrtuService(body, user);
+        return successResponse(c, ortu, {
+            message: 'Data orang tua berhasil dibuat',
+            status: 201,
+        });
+    }
+    catch (error) {
+        console.error('Error createOrtu:', error);
+        const status = error.message.includes('permission') ? 403 : 400;
+        return errorResponse(c, error.message || 'Gagal membuat data orang tua', {
+            status,
+        });
+    }
+};
 export const getAllOrtu = async (c) => {
     try {
         const user = c.get('user');

@@ -49,7 +49,7 @@ const isMainModule = (metaUrl) => {
 };
 // Jalankan server HANYA jika file ini dijalankan langsung
 if (isMainModule(import.meta.url)) {
-    const port = Number(process.env.PORT) || 3001;
+    const port = Number(process.env.PORT) || 3000;
     serve({
         fetch: app.fetch,
         port,
